@@ -1,4 +1,4 @@
-package com.springboot.rest.usecase.SampleEntity;
+package com.springboot.rest.usecase.sampleentity;
 
 import com.springboot.rest.domain.dto.SampleEntityDTO;
 import com.springboot.rest.domain.port.api.SampleEntityServicePort;

@@ -12,6 +12,12 @@ import com.springboot.rest.rest.errors.EmailAlreadyUsedException;
 import com.springboot.rest.rest.errors.LoginAlreadyUsedException;
 import com.springboot.rest.rest.vm.KeyAndPasswordVM;
 import com.springboot.rest.security.SecurityUtils;
+import com.springboot.rest.usecase.mail.SendMail;
+import com.springboot.rest.usecase.user.CreateUser;
+import com.springboot.rest.usecase.user.DeleteUser;
+import com.springboot.rest.usecase.user.ReadUser;
+import com.springboot.rest.usecase.user.RegisterUser;
+import com.springboot.rest.usecase.user.UpdateUser;
 import com.springboot.rest.rest.errors.InvalidPasswordException;
 import com.springboot.rest.rest.vm.ManagedUserVM;
 import io.swagger.v3.oas.annotations.Operation;
@@ -35,21 +41,40 @@ public class AccountResource {
 
     private final Logger log = LoggerFactory.getLogger(AccountResource.class);
 
-    private final UserServicePort userServicePort;
-
-
-    private final MailServicePort mailServicePort;
+    ////######## Without Using Verb Service Layer ######### ////////
+	/*
+	 * private final UserServicePort userServicePort; private final MailServicePort
+	 * mailServicePort; private final UserMapper userMapper;
+	 * 
+	 * public AccountResource(UserServicePort userServicePort, MailServicePort
+	 * mailServicePort, UserMapper userMapper) { this.userServicePort =
+	 * userServicePort; this.mailServicePort = mailServicePort; this.userMapper =
+	 * userMapper; }
+	 */
+    
+    //// ######## Using Verb Service Layer ######## ////////
+    private final CreateUser createUser;
+    private final RegisterUser registerUser;
+    private final ReadUser readUser;
+    private final UpdateUser updateUser;
+    private final DeleteUser deleteUser;
+    
+    private final SendMail sendEmail;
     
     private final UserMapper userMapper;
 
-    public AccountResource(UserServicePort userServicePort, MailServicePort mailServicePort, UserMapper userMapper) {
-        this.userServicePort = userServicePort;
-        this.mailServicePort = mailServicePort;
-        this.userMapper = userMapper;
+    public AccountResource(CreateUser createUser, RegisterUser registerUser, ReadUser readUser, UpdateUser updateUser,
+			DeleteUser deleteUser, SendMail sendEmail, UserMapper userMapper) {
+		this.createUser = createUser;
+		this.registerUser = registerUser;
+		this.readUser = readUser;
+		this.updateUser = updateUser;
+		this.deleteUser = deleteUser;
+		this.sendEmail = sendEmail;
+		this.userMapper = userMapper;
+	}
 
-    }
-
-    /**
+	/**
      * {@code POST  /register} : register the user.
      *
      * @param managedUserVM
@@ -67,7 +92,7 @@ public class AccountResource {
         if (isPasswordLengthInvalid(managedUserVM.getPassword())) {
             throw new InvalidPasswordException();
         }
-        User user = userServicePort.registerUser(managedUserVM, managedUserVM.getPassword());
+        User user = registerUser.registerUser(managedUserVM, managedUserVM.getPassword());
      
     }
 
@@ -83,7 +108,7 @@ public class AccountResource {
     @GetMapping("/activate")
     @Operation(summary = "/account", security = @SecurityRequirement(name = "bearerAuth"))
     public void activateAccount(@RequestParam(value = "key") String key) {
-        Optional<User> user = userServicePort.activateRegistration(key);
+        Optional<User> user = registerUser.activateRegistration(key);
         if (!user.isPresent()) {
             throw new AccountResourceException("No user was found for this activation key");
         }
@@ -114,7 +139,7 @@ public class AccountResource {
     @GetMapping("/account")
     @Operation(summary = "/account", security = @SecurityRequirement(name = "bearerAuth"))
     public AdminUserDTO getAccount() {
-        return userServicePort.getUserWithAuthorities().map(AdminUserDTO::new).orElseThrow(() -> new AccountResourceException("User could not be found"));
+        return readUser.getUserWithAuthorities().map(AdminUserDTO::new).orElseThrow(() -> new AccountResourceException("User could not be found"));
     }
 
     /**
@@ -132,7 +157,7 @@ public class AccountResource {
     @Operation(summary = "/account", security = @SecurityRequirement(name = "bearerAuth"))
     public void saveAccount(@Valid @RequestBody AdminUserDTO userDTO) {
         String userLogin = SecurityUtils.getCurrentUserLogin().orElseThrow(() -> new AccountResourceException("Current user login not found"));       
-        userServicePort.saveAccount(userDTO, userLogin);
+        createUser.saveAccount(userDTO, userLogin);
     }
 
     /**
@@ -150,7 +175,7 @@ public class AccountResource {
         if (isPasswordLengthInvalid(passwordChangeDto.getNewPassword())) {
             throw new InvalidPasswordException();
         }
-        userServicePort.changePassword(passwordChangeDto.getCurrentPassword(), passwordChangeDto.getNewPassword());
+        updateUser.changePassword(passwordChangeDto.getCurrentPassword(), passwordChangeDto.getNewPassword());
     }
 
     /**
@@ -163,7 +188,7 @@ public class AccountResource {
     @PostMapping(path = "/account/reset-password/init")
     @Operation(summary = "/account", security = @SecurityRequirement(name = "bearerAuth"))
     public void requestPasswordReset(@RequestBody String mail) {
-        Optional<User> user = userServicePort.requestPasswordReset(mail);
+        Optional<User> user = updateUser.requestPasswordReset(mail);
         if (user.isPresent()) {
         	  log.warn("Password reset requested for existing mail");
         } else {
@@ -189,7 +214,7 @@ public class AccountResource {
         if (isPasswordLengthInvalid(keyAndPassword.getNewPassword())) {
             throw new InvalidPasswordException();
         }
-        Optional<User> user = userServicePort.completePasswordReset(keyAndPassword.getNewPassword(), keyAndPassword.getKey());
+        Optional<User> user = updateUser.completePasswordReset(keyAndPassword.getNewPassword(), keyAndPassword.getKey());
 
         if (!user.isPresent()) {
             throw new AccountResourceException("No user was found for this reset key");
