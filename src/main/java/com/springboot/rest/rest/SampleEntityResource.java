@@ -3,10 +3,11 @@ package com.springboot.rest.rest;
 import com.springboot.rest.domain.dto.SampleEntityDTO;
 import com.springboot.rest.infrastructure.entity.SampleEntity;
 import com.springboot.rest.rest.errors.BadRequestAlertException;
-import com.springboot.rest.usecase.SampleEntity.CreateSampleEntity;
-import com.springboot.rest.usecase.SampleEntity.DeleteSampleEntity;
-import com.springboot.rest.usecase.SampleEntity.ReadSampleEntity;
-import com.springboot.rest.usecase.SampleEntity.UpdateSampleEntity;
+import com.springboot.rest.usecase.sampleentity.CreateSampleEntity;
+import com.springboot.rest.usecase.sampleentity.DeleteSampleEntity;
+import com.springboot.rest.usecase.sampleentity.ReadSampleEntity;
+import com.springboot.rest.usecase.sampleentity.UpdateSampleEntity;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.slf4j.Logger;

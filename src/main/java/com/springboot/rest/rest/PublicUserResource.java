@@ -3,6 +3,13 @@ package com.springboot.rest.rest;
 import com.springboot.rest.domain.dto.UserDTO;
 import com.springboot.rest.domain.port.api.AuthorityServicePort;
 import com.springboot.rest.domain.port.api.UserServicePort;
+import com.springboot.rest.usecase.authority.ReadAuthority;
+import com.springboot.rest.usecase.user.CreateUser;
+import com.springboot.rest.usecase.user.DeleteUser;
+import com.springboot.rest.usecase.user.ReadUser;
+import com.springboot.rest.usecase.user.RegisterUser;
+import com.springboot.rest.usecase.user.UpdateUser;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.slf4j.Logger;
@@ -31,15 +38,38 @@ public class PublicUserResource {
 
     private final Logger log = LoggerFactory.getLogger(PublicUserResource.class);
 
-    private final UserServicePort userServicePort;
-    private final AuthorityServicePort authorityServicePort;
+    ////######## Without Using Verb Service Layer ######### ////////
+	/*
+	 * private final UserServicePort userServicePort; private final
+	 * AuthorityServicePort authorityServicePort;
+	 * 
+	 * public PublicUserResource(UserServicePort userServicePort,
+	 * AuthorityServicePort authorityServicePort) { this.userServicePort =
+	 * userServicePort; this.authorityServicePort = authorityServicePort; }
+	 */
+    
+    ////######## Using Verb Service Layer ######## ////////
+    private final CreateUser createUser;
+    private final RegisterUser registerUser;
+    private final ReadUser readUser;
+    private final UpdateUser updateUser;
+    private final DeleteUser deleteUser;
+    
+    private final ReadAuthority readAuthority;
+    
+    
 
-    public PublicUserResource(UserServicePort userServicePort, AuthorityServicePort authorityServicePort) {
-        this.userServicePort = userServicePort;
-        this.authorityServicePort = authorityServicePort;
-    }
+    public PublicUserResource(CreateUser createUser, RegisterUser registerUser, ReadUser readUser,
+			UpdateUser updateUser, DeleteUser deleteUser, ReadAuthority readAuthority) {
+		this.createUser = createUser;
+		this.registerUser = registerUser;
+		this.readUser = readUser;
+		this.updateUser = updateUser;
+		this.deleteUser = deleteUser;
+		this.readAuthority = readAuthority;
+	}
 
-    /**
+	/**
      * {@code GET /users} : get all users with only the public informations -
      * calling this are allowed for anyone.
      *
@@ -56,7 +86,7 @@ public class PublicUserResource {
             return ResponseEntity.badRequest().build();
         }
 
-        final Page<UserDTO> page = userServicePort.getAllPublicUsers(pageable);
+        final Page<UserDTO> page = readUser.getAllPublicUsers(pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);
     }
@@ -74,6 +104,6 @@ public class PublicUserResource {
     @Operation(summary = "/users", security = @SecurityRequirement(name = "bearerAuth"))
     public List<String> getAuthorities() {
 
-        return authorityServicePort.getAuthorities();
+        return readAuthority.getAuthorities();
     }
 }
