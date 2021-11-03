@@ -38,7 +38,7 @@ import com.springboot.rest.security.AuthoritiesConstants;
 
 @ExtendWith(MockitoExtension.class)
 @ExtendWith(SpringExtension.class)
-class CreateUserTest {
+class UpdateUserTest {
 	
 	private static final String DEFAULT_LOGIN = "johndoe";
 	
@@ -54,7 +54,7 @@ class CreateUserTest {
     private UserPersistencPort userPersistencePort;
     
     @InjectMocks
-    private CreateUser createUser;
+    private UpdateUser updateUser;
 
 	@BeforeEach
     public void init() {
@@ -70,7 +70,7 @@ class CreateUserTest {
         user.setLangKey("en");
 
         userDto = new AdminUserDTO(user);
-        createUser = new CreateUser(userServicePort);
+        updateUser = new UpdateUser(userServicePort);
     }
     
 	@Test
@@ -79,36 +79,12 @@ class CreateUserTest {
 	}
 	
     @Test
-    void saveAdminUserDTOasUserAndTestUniqueLoginAndEmail() {
-    	Mockito.when(userPersistencePort.findOneByLogin(userDto.getLogin().toLowerCase()).isPresent())
-    			.thenReturn(null);
-    	Mockito.when(userPersistencePort.findOneByEmailIgnoreCase(userDto.getEmail()).isPresent())
-    			.thenReturn(null);
-    	
-    	User createdUser = createUser.createUser(userDto);
-    	
-    	// testing
-//    	System.out.println("created: "+createdUser);
-    	
-    	assertNull(createdUser);
-    }
-    
-    @Test
-    void saveUserAccountWithGivenLoginID() {
-    	
-//    	Mockito.when(userPersistencePort.findOneByEmailIgnoreCase(userDto.getEmail()).isPresent())
-//		.thenReturn(null);
-    	Mockito.when(!userPersistencePort.findOneByLogin(DEFAULT_LOGIN.toLowerCase()).isPresent())
-		.thenReturn(null);
-    	
-    	createUser.saveAccount(userDto, DEFAULT_LOGIN);
-    	
-    	Optional<User> existingUser = userPersistencePort.findOneByLogin(DEFAULT_LOGIN);
-    	
-    	// testing
-//    	System.out.println("created: "+existingUser);
-    	
-    	assertNull(existingUser);
+    void updateUserTest() {
+    	Mockito.doNothing().when(userServicePort)
+    			.updateUser(user.getFirstName(), user.getLastName(), user.getEmail(), 
+    			user.getLangKey(), user.getImageUrl());
+    	updateUser.updateUser(user.getFirstName(), user.getLastName(), user.getEmail(), 
+    			user.getLangKey(), user.getImageUrl());
     }
     
 }

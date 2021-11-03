@@ -25,7 +25,7 @@ public class CreateUser {
     public User createUser(AdminUserDTO userDTO) {
     	
     	// testing
-    	System.out.println("adminuserDto: "+userDTO);
+//    	System.out.println("adminuserDto: "+userDTO);
     	
         return userServicePort.createUser(userDTO);
     }

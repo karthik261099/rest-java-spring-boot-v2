@@ -1,4 +1,4 @@
-package com.springboot.rest.usecase.user;
+package com.springboot.rest.usecase.mail;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
@@ -24,6 +24,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import com.springboot.rest.domain.dto.AdminUserDTO;
+import com.springboot.rest.domain.port.api.MailServicePort;
 import com.springboot.rest.domain.port.api.UserServicePort;
 import com.springboot.rest.domain.port.spi.UserPersistencPort;
 import com.springboot.rest.domain.service.UserService;
@@ -38,23 +39,28 @@ import com.springboot.rest.security.AuthoritiesConstants;
 
 @ExtendWith(MockitoExtension.class)
 @ExtendWith(SpringExtension.class)
-class CreateUserTest {
+class SendMailTest {
 	
 	private static final String DEFAULT_LOGIN = "johndoe";
 	
     private UserMapper userMapper;
     private User user;
+//    private Mail mail;
     private AdminUserDTO userDto;
     
     @Autowired
     @MockBean
     private UserServicePort userServicePort;
     
+    @Autowired
+    @MockBean
+    private MailServicePort mailServicePort;
+    
     @MockBean
     private UserPersistencPort userPersistencePort;
     
     @InjectMocks
-    private CreateUser createUser;
+    private SendMail sendMail;
 
 	@BeforeEach
     public void init() {
@@ -70,45 +76,41 @@ class CreateUserTest {
         user.setLangKey("en");
 
         userDto = new AdminUserDTO(user);
-        createUser = new CreateUser(userServicePort);
+        sendMail = new SendMail(mailServicePort);
     }
     
 	@Test
 	void contextLoads() {
-		assertThat(userServicePort).isNotNull();
+		assertThat(mailServicePort).isNotNull();
 	}
 	
-    @Test
-    void saveAdminUserDTOasUserAndTestUniqueLoginAndEmail() {
-    	Mockito.when(userPersistencePort.findOneByLogin(userDto.getLogin().toLowerCase()).isPresent())
-    			.thenReturn(null);
-    	Mockito.when(userPersistencePort.findOneByEmailIgnoreCase(userDto.getEmail()).isPresent())
-    			.thenReturn(null);
-    	
-    	User createdUser = createUser.createUser(userDto);
-    	
-    	// testing
-//    	System.out.println("created: "+createdUser);
-    	
-    	assertNull(createdUser);
-    }
-    
-    @Test
-    void saveUserAccountWithGivenLoginID() {
-    	
-//    	Mockito.when(userPersistencePort.findOneByEmailIgnoreCase(userDto.getEmail()).isPresent())
-//		.thenReturn(null);
-    	Mockito.when(!userPersistencePort.findOneByLogin(DEFAULT_LOGIN.toLowerCase()).isPresent())
-		.thenReturn(null);
-    	
-    	createUser.saveAccount(userDto, DEFAULT_LOGIN);
-    	
-    	Optional<User> existingUser = userPersistencePort.findOneByLogin(DEFAULT_LOGIN);
-    	
-    	// testing
-//    	System.out.println("created: "+existingUser);
-    	
-    	assertNull(existingUser);
-    }
+  @Test
+  void sendActivationMailTest() {
+  	Mockito.doNothing().when(mailServicePort)
+  			.sendActivationEmail(user);
+  	sendMail.sendActivationEmail(user);
+  }
+  
+  @Test
+  void sendCreationMailTest() {
+  	Mockito.doNothing().when(mailServicePort)
+  			.sendCreationEmail(user);
+  	sendMail.sendCreationEmail(user);
+  }
+  
+  @Test
+  void sendPasswordResetMailTest() {
+  	Mockito.doNothing().when(mailServicePort)
+  			.sendPasswordResetMail(user);
+  	sendMail.sendPasswordResetMail(user);
+  }
+	
+//    @Test
+//    void sendMailTest() {
+//    	Mockito.doNothing().when(mailServicePort)
+//    			.sendMail();
+//    	sendEmail.sendEmail(mail.getTo(), mail.getSubject(), mail.getContent(), 
+//    			mail.isMultipart(), mail.isHtml());
+//    }
     
 }
