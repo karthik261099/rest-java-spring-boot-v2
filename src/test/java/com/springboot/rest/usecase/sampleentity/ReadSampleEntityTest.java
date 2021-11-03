@@ -1,10 +1,12 @@
-package com.springboot.rest.usecase.user;
+package com.springboot.rest.usecase.sampleentity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import org.apache.commons.lang3.RandomStringUtils;
@@ -24,84 +26,79 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import com.springboot.rest.domain.dto.AdminUserDTO;
+import com.springboot.rest.domain.dto.SampleEntityDTO;
+import com.springboot.rest.domain.port.api.SampleEntityServicePort;
 import com.springboot.rest.domain.port.api.UserServicePort;
+import com.springboot.rest.domain.port.spi.SampleEntityPersistencePort;
 import com.springboot.rest.domain.port.spi.UserPersistencPort;
 import com.springboot.rest.domain.service.UserService;
+import com.springboot.rest.infrastructure.entity.SampleEntity;
 import com.springboot.rest.infrastructure.entity.User;
+import com.springboot.rest.mapper.SampleEntityMapper;
 import com.springboot.rest.mapper.UserMapper;
 import com.springboot.rest.security.AuthoritiesConstants;
 
 @ExtendWith(MockitoExtension.class)
 @ExtendWith(SpringExtension.class)
-class DeleteUserTest {
+class ReadSampleEntityTest {
 	
 	private static final String DEFAULT_LOGIN = "johndoe";
 	
-    private UserMapper userMapper;
-    private User user;
-    private AdminUserDTO userDto;
+    private SampleEntityMapper sampleEntityMapper;
+    private SampleEntity sampleEntity;
+    private SampleEntityDTO sampleEntityDto;
     
     @Autowired
     @MockBean
-    private UserServicePort userServicePort;
+    private SampleEntityServicePort sampleEntityServicePort;
     
     @MockBean
-    private UserPersistencPort userPersistencePort;
+    private SampleEntityPersistencePort sampleEntityPersistencePort;
     
     @InjectMocks
-    private DeleteUser deleteUser;
+    private ReadSampleEntity readSampleEntity;
 
 	@BeforeEach
     public void init() {
-        userMapper = new UserMapper();
-        user = new User();
-        user.setLogin(DEFAULT_LOGIN);
-        user.setPassword(RandomStringUtils.random(60));
-        user.setActivated(true);
-        user.setEmail("johndoe@localhost");
-        user.setFirstName("john");
-        user.setLastName("doe");
-        user.setImageUrl("image_url");
-        user.setLangKey("en");
+		sampleEntity = new SampleEntity();
+		sampleEntity.setId(99l);
+		sampleEntity.setAge(20);
+		sampleEntity.setName("Test Sample");
+		sampleEntity.setPhone(2848);
+		sampleEntity.setPassword("Test@123");
 
-        userDto = new AdminUserDTO(user);
-        deleteUser = new DeleteUser(userServicePort);
+        sampleEntityDto = new SampleEntityDTO(sampleEntity);
+        readSampleEntity = new ReadSampleEntity(sampleEntityServicePort);
     }
     
 	@Test
 	void contextLoads() {
-		assertThat(userServicePort).isNotNull();
+		assertThat(sampleEntityServicePort).isNotNull();
 	}
 	
     @Test
-    void deleteUserTest() {
-    	Mockito.doNothing().when(userServicePort)
-    			.deleteUser(DEFAULT_LOGIN);
-    	deleteUser.deleteUser(DEFAULT_LOGIN);
+    void findSampleEntitiesTest() {
+		List<SampleEntity> entities = new ArrayList<SampleEntity>();
+		
+		Mockito.when(sampleEntityServicePort.findAll().size() > 0)
+				.thenReturn(null);
+		
+		entities = readSampleEntity.findAll();
+		// testing
+		// System.out.println("Auths: "+authorities);
+		
+		assertNull(entities);
     }
     
     @Test
-    void removeNonActivatedUserTest() {
-    	
-    	// testing
-    	// System.out.println("user present: "+userPersistencePort.findOneByLogin(DEFAULT_LOGIN).isPresent());
-    	
-    	Mockito.when(userPersistencePort.findOneByLogin(DEFAULT_LOGIN)
+    void findSampleEntityByIdTest() {
+    	Mockito.when(sampleEntityPersistencePort
+    			.findById(sampleEntityDto.getId())
     			.isPresent())
-    			.thenReturn(null);
-    	deleteUser.removeNonActivatedUser(user);
-    }
-    
-    @Test
-    void removeNonActivatedUsersTest() {
+    			.thenReturn(null);    	
+    	Optional<SampleEntity> fetchedSampleEntity = readSampleEntity.findById(sampleEntity.getId());
     	
-    	// testing
-    	// System.out.println("user present: "+userPersistencePort.findOneByLogin(DEFAULT_LOGIN).isPresent());
-    	
-    	Mockito.when(userPersistencePort.findOneByLogin(DEFAULT_LOGIN)
-    			.isPresent())
-    			.thenReturn(null);
-    	deleteUser.removeNotActivatedUsers();
+    	assertNull(fetchedSampleEntity);
     }
-    
+ 
 }
