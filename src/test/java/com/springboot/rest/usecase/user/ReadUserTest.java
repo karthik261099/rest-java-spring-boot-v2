@@ -19,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import com.springboot.rest.domain.dto.AdminUserDTO;
+import com.springboot.rest.domain.dto.UserDTO;
 import com.springboot.rest.domain.port.api.UserServicePort;
 import com.springboot.rest.domain.port.spi.UserPersistencPort;
 import com.springboot.rest.infrastructure.entity.User;
@@ -71,6 +72,20 @@ class ReadUserTest {
 		assertThat(userServicePort).isNotNull();
 	}
 	
+    @Test
+    void getAllManagedUsersTest() {
+    	Page<AdminUserDTO> adminUserPage = Mockito.mock(Page.class);
+    	Mockito.when(userPersistencePort.findAll(Mockito.any()))
+    			.thenReturn(adminUserPage);
+    }
+    
+    @Test
+    void getAllByIdNotNullAndActivatedIsTrueTest() {
+    	Page<UserDTO> userPage = Mockito.mock(Page.class);
+    	Mockito.when(userServicePort.findAllByIdNotNullAndActivatedIsTrue(Mockito.any()))
+    			.thenReturn(userPage);
+    }
+    
 	@Test
 	void getUserWithAuthoritiesByLoginTest() {
 		Optional<User> opUser = Optional.ofNullable(user);
@@ -80,35 +95,31 @@ class ReadUserTest {
 		Optional<User> opUserResult = readUser.getUserWithAuthoritiesByLogin(DEFAULT_LOGIN);
 		
 		// testing
-		System.out.println("opU: "+opUserResult.get());
+		// System.out.println("opU: "+opUserResult.get());
 		
 		assertNotNull(opUserResult.get());
 	}
 	
-//	@Test
-//	void getUserWithAuthoritiesTest() {
-//		Optional<User> opUser = Optional.ofNullable(user);
-//		
-//		Mockito.when(SecurityUtils.getCurrentUserLogin().flatMap(userPersistencePort::getUserWithAuthoritiesByLogin))
-//				.thenReturn(opUser);
-//		
-//		
-//		Optional<User> opUserResult = readUser.getUserWithAuthorities();
-//		
-//		// testing
-//		System.out.println("opU: "+opUserResult.get());
-//		
-//		assertNull(opUserResult.get());
-//	}
+	@Test
+	void getUserWithAuthoritiesTest() {
+		Optional<User> opUser = Optional.ofNullable(user);
+		
+		Mockito.when(userServicePort.getUserWithAuthorities())
+				.thenReturn(opUser);
+		
+		Optional<User> opUserResult = readUser.getUserWithAuthorities();
+		
+		// testing
+		// System.out.println("opU: "+opUserResult.get());
+		
+		assertNotNull(opUserResult.get());
+	}
 	
-//    @Test
-//    void getAllManagedUsersTest() {
-//    	Page<AdminUserDTO> adminUserPage = new Page;
-//    	Mockito.when(userPersistencePort.findAll(pageable))
-//    			.thenReturn(userDto);
-//    	Mockito.when(userPersistencePort.findOneByEmailIgnoreCase(userDto.getEmail()).isPresent())
-//    			.thenReturn(null);
-//    	
-//    }
-    
+    @Test
+    void getAllPublicUsersTest() {
+    	Page<UserDTO> userPage = Mockito.mock(Page.class);
+    	Mockito.when(userServicePort.getAllPublicUsers(Mockito.any()))
+    			.thenReturn(userPage);
+    }
+
 }
