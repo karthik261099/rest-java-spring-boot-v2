@@ -5,10 +5,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Optional;
 
 import org.apache.commons.lang3.RandomStringUtils;
-import org.hamcrest.core.IsInstanceOf;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,29 +14,19 @@ import org.mockito.InjectMocks;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import com.springboot.rest.domain.dto.AdminUserDTO;
 import com.springboot.rest.domain.port.api.UserServicePort;
 import com.springboot.rest.domain.port.spi.UserPersistencPort;
-import com.springboot.rest.domain.service.UserService;
 import com.springboot.rest.infrastructure.entity.User;
 import com.springboot.rest.mapper.UserMapper;
-import com.springboot.rest.security.AuthoritiesConstants;
 
-//@WebMvcTest
-//@AutoConfigureMockMvc
-//@WithMockUser(authorities = AuthoritiesConstants.ADMIN)
-//@SpringBootTest
 
 @ExtendWith(MockitoExtension.class)
 @ExtendWith(SpringExtension.class)
-class CreateUserTest {
+class UpdateUserTest {
 	
 	private static final String DEFAULT_LOGIN = "johndoe";
 	
@@ -54,7 +42,7 @@ class CreateUserTest {
     private UserPersistencPort userPersistencePort;
     
     @InjectMocks
-    private CreateUser createUser;
+    private UpdateUser updateUser;
 
 	@BeforeEach
     public void init() {
@@ -70,7 +58,7 @@ class CreateUserTest {
         user.setLangKey("en");
 
         userDto = new AdminUserDTO(user);
-        createUser = new CreateUser(userServicePort);
+        updateUser = new UpdateUser(userServicePort);
     }
     
 	@Test
@@ -79,36 +67,12 @@ class CreateUserTest {
 	}
 	
     @Test
-    void saveAdminUserDTOasUserAndTestUniqueLoginAndEmail() {
-    	Mockito.when(userPersistencePort.findOneByLogin(userDto.getLogin().toLowerCase()).isPresent())
-    			.thenReturn(null);
-    	Mockito.when(userPersistencePort.findOneByEmailIgnoreCase(userDto.getEmail()).isPresent())
-    			.thenReturn(null);
-    	
-    	User createdUser = createUser.createUser(userDto);
-    	
-    	// testing
-//    	System.out.println("created: "+createdUser);
-    	
-    	assertNull(createdUser);
-    }
-    
-    @Test
-    void saveUserAccountWithGivenLoginID() {
-    	
-//    	Mockito.when(userPersistencePort.findOneByEmailIgnoreCase(userDto.getEmail()).isPresent())
-//		.thenReturn(null);
-    	Mockito.when(!userPersistencePort.findOneByLogin(DEFAULT_LOGIN.toLowerCase()).isPresent())
-		.thenReturn(null);
-    	
-    	createUser.saveAccount(userDto, DEFAULT_LOGIN);
-    	
-    	Optional<User> existingUser = userPersistencePort.findOneByLogin(DEFAULT_LOGIN);
-    	
-    	// testing
-//    	System.out.println("created: "+existingUser);
-    	
-    	assertNull(existingUser);
+    void updateUserTest() {
+    	Mockito.doNothing().when(userServicePort)
+    			.updateUser(user.getFirstName(), user.getLastName(), user.getEmail(), 
+    			user.getLangKey(), user.getImageUrl());
+    	updateUser.updateUser(user.getFirstName(), user.getLastName(), user.getEmail(), 
+    			user.getLangKey(), user.getImageUrl());
     }
     
 }

@@ -134,7 +134,6 @@ public class UserService implements UserServicePort {
             throw new EmailAlreadyUsedException();
         } else {
             return userPersistencePort.createUser(userDTO);
-
         }
        
     }

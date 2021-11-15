@@ -31,14 +31,9 @@ import com.springboot.rest.infrastructure.entity.User;
 import com.springboot.rest.mapper.UserMapper;
 import com.springboot.rest.security.AuthoritiesConstants;
 
-//@WebMvcTest
-//@AutoConfigureMockMvc
-//@WithMockUser(authorities = AuthoritiesConstants.ADMIN)
-//@SpringBootTest
-
 @ExtendWith(MockitoExtension.class)
 @ExtendWith(SpringExtension.class)
-class CreateUserTest {
+class DeleteUserTest {
 	
 	private static final String DEFAULT_LOGIN = "johndoe";
 	
@@ -54,7 +49,7 @@ class CreateUserTest {
     private UserPersistencPort userPersistencePort;
     
     @InjectMocks
-    private CreateUser createUser;
+    private DeleteUser deleteUser;
 
 	@BeforeEach
     public void init() {
@@ -70,7 +65,7 @@ class CreateUserTest {
         user.setLangKey("en");
 
         userDto = new AdminUserDTO(user);
-        createUser = new CreateUser(userServicePort);
+        deleteUser = new DeleteUser(userServicePort);
     }
     
 	@Test
@@ -79,36 +74,34 @@ class CreateUserTest {
 	}
 	
     @Test
-    void saveAdminUserDTOasUserAndTestUniqueLoginAndEmail() {
-    	Mockito.when(userPersistencePort.findOneByLogin(userDto.getLogin().toLowerCase()).isPresent())
-    			.thenReturn(null);
-    	Mockito.when(userPersistencePort.findOneByEmailIgnoreCase(userDto.getEmail()).isPresent())
-    			.thenReturn(null);
-    	
-    	User createdUser = createUser.createUser(userDto);
-    	
-    	// testing
-//    	System.out.println("created: "+createdUser);
-    	
-    	assertNull(createdUser);
+    void deleteUserTest() {
+    	Mockito.doNothing().when(userServicePort)
+    			.deleteUser(DEFAULT_LOGIN);
+    	deleteUser.deleteUser(DEFAULT_LOGIN);
     }
     
     @Test
-    void saveUserAccountWithGivenLoginID() {
-    	
-//    	Mockito.when(userPersistencePort.findOneByEmailIgnoreCase(userDto.getEmail()).isPresent())
-//		.thenReturn(null);
-    	Mockito.when(!userPersistencePort.findOneByLogin(DEFAULT_LOGIN.toLowerCase()).isPresent())
-		.thenReturn(null);
-    	
-    	createUser.saveAccount(userDto, DEFAULT_LOGIN);
-    	
-    	Optional<User> existingUser = userPersistencePort.findOneByLogin(DEFAULT_LOGIN);
+    void removeNonActivatedUserTest() {
     	
     	// testing
-//    	System.out.println("created: "+existingUser);
+    	// System.out.println("user present: "+userPersistencePort.findOneByLogin(DEFAULT_LOGIN).isPresent());
     	
-    	assertNull(existingUser);
+    	Mockito.when(userPersistencePort.findOneByLogin(DEFAULT_LOGIN)
+    			.isPresent())
+    			.thenReturn(null);
+    	deleteUser.removeNonActivatedUser(user);
+    }
+    
+    @Test
+    void removeNonActivatedUsersTest() {
+    	
+    	// testing
+    	// System.out.println("user present: "+userPersistencePort.findOneByLogin(DEFAULT_LOGIN).isPresent());
+    	
+    	Mockito.when(userPersistencePort.findOneByLogin(DEFAULT_LOGIN)
+    			.isPresent())
+    			.thenReturn(null);
+    	deleteUser.removeNotActivatedUsers();
     }
     
 }
